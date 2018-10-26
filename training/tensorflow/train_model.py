@@ -5,11 +5,11 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 import warnings
 import argparse
 import PATH
-import models.ImageData as ImgData
-import models.model as mod
-import models.cnn_models as fe
 import numpy as np
-import models.util as util
+import training.tensorflow.models.ImageData as ImgData
+import training.tensorflow.models.model as mod
+import training.tensorflow.models.cnn_models as fe
+import training.tensorflow.models.util as util
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore")
