@@ -24,25 +24,24 @@ paths_production= {"dataset": "/Users/Matze/Desktop/HackathonScionWinter/data/da
                }
                }
 
+paths_pc = {"dataset2018": "/home/matthias/Schreibtisch/skincancer/data/dataset_2018",
+            "dataset": "/home/matthias/Schreibtisch/skincancer/data/dataset",
+            "train_results": "/home/matthias/Schreibtisch/skincancer/data/results/",
+               }
+
 paths_remote = {"database": "/home/Julian/DATA/",
                 "train_results": "/home/Julian/BeeNets/data/results/",
                 "pollen": "/home/Julian/DATA/Pollen_Dataset/",
                 "cifar10": "/home/Julian/DATA/cifar-10-batches-py/",
                 "yolo": "/home/Julian/DATA/abgabe_trained_ep010-loss31.293-val_loss31.551.h5"}
 
-test_videos_local = ["/Users/Julian/Desktop/Dropbox/synthbeedata/videos/31_05_2018_Hopfner_video_10.mp4",
-                     "/Users/Julian/Desktop/Dropbox/synthbeedata/videos/31_05_2018_Hopfner_video_100.mp4",
-                     "/Users/Julian/Desktop/Dropbox/synthbeedata/videos/31_05_2018_Hopfner_video_970.mp4"]
-
-test_videos_remote = ["/home/ubuntu/DATA/videos/31_05_2018_Hopfner_video_10.mp4",
-                      "/home/ubuntu/DATA/videos/31_05_2018_Hopfner_video_100.mp4",
-                      "/home/ubuntu/DATA/videos/31_05_2018_Hopfner_video_970.mp4"]
-
-# Paths to data depending of USER variable
-paths = paths_local \
-    if os.getenv('HOME') == '/Users/Julian' \
-    else paths_production
-
-videos = test_videos_local \
-    if os.getenv('USER') == 'Julian' \
-    else test_videos_remote
+print(os.getenv('HOME'))
+if os.getenv('HOME') == '/home/matthias':
+    paths = paths_pc
+elif os.getenv('HOME') == '/Users/Julian':
+    paths = paths_local
+elif os.getenv('HOME') == '/home/matze':
+    paths = paths_production
+else:
+    paths=paths_remote
+print(paths)
