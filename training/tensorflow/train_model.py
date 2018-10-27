@@ -37,7 +37,7 @@ def load_data(dataset, p=PATH.paths, input_shape=(128, 128, 3)):
 
 
 def load_model(p=PATH.paths, input_shape=(128, 128, 3), ex=fe.CNN, classes=None, learning_rate=1e-5, rewrite=False):
-    model = mod.ClassificationModel(path=p["train_results"], input_shape=input_shape, classnames=classes,
+    model = mod.InceptionResnet(path=p["train_results"], input_shape=input_shape, classnames=classes,
                                     extractor=ex, training=True, learning_rate=learning_rate, dropout=0.0,
                                     rewrite=rewrite)
     model.inference()
@@ -70,7 +70,7 @@ def training(data, models=[], epochs=512, batch_size=32):
                     m.summary(x_batch, y_batch, mode="train")
                     m.summary(x_batch_test, y_batch_test, mode="test")
 
-                if i % 100 == 0:
+                if i % 800 == 0:
                     m.save()
 
         for index, m in enumerate(models):
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     with warnings.catch_warnings():
         warnings.filterwarnings("ignore")
-        input_shape = (256, 256, 3)
+        input_shape = (299, 299, 3)
         print(PATH.paths)
 
         data = load_data("dataset2018", p=PATH.paths, input_shape=input_shape)
@@ -122,9 +122,9 @@ if __name__ == "__main__":
         learningrate = [1e-4] #, 5e-5, 2e-5, 1e-5, 5e-6, 1e-6]
 
         for l in learningrate:
-            mymodel = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.CNN_Resnet, classes=data.get_classnames(), learning_rate=l, rewrite=True)
+            mymodel = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.inception_resnet_v2, classes=data.get_classnames(), learning_rate=l, rewrite=True)
             models.append(mymodel)
-            training(data=data, models=models, epochs=128, batch_size=32)
+            training(data=data, models=models, epochs=20, batch_size=32)
 
             model = None
             models = []

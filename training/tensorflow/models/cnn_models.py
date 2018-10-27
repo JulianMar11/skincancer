@@ -1,7 +1,7 @@
 import tensorflow as tf
 import tensorflow.contrib.layers as layers
 import tensorflow.contrib.slim as slim
-import training.tensorflow.models.tfmodels.inception_resnet_v2 as inc
+import models.tfmodels.inception_resnet_v2 as inc
 
 from collections import namedtuple
 

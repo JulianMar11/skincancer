@@ -1,10 +1,10 @@
 import cv2
-#import tensorflow as tf
+import tensorflow as tf
 import numpy as np
 import os
 import shutil
 import matplotlib
-matplotlib.use('TkAgg')
+#matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
 matplotlib.pyplot.switch_backend('agg')
 

@@ -248,7 +248,7 @@ class ClassificationModel(AbstractModel):
 
 #Load the definitions of Inception-Resnet-v2 architecture
 import tensorflow.contrib.slim as slim
-from training.tensorflow.models.tfmodels.inception_resnet_v2 import inception_resnet_v2, inception_resnet_v2_arg_scope
+from models.tfmodels.inception_resnet_v2 import inception_resnet_v2, inception_resnet_v2_arg_scope
 
 
 class InceptionResnet(AbstractModel):
@@ -262,7 +262,7 @@ class InceptionResnet(AbstractModel):
         self.classnames = classnames
         self.classes = len(classnames)
         self.model_parameters = ['x', 'y', 'loss', 'accuracy', 'global_step', 'predictions', 'predictions_op', 'correct_prediction_op', 'merged', 'optimizer']
-        self.pretrained_weights = "/Users/Julian/GitHub/skincancer/data/results/Pretrained_weights/inception_resnet_v2_2016_08_30.ckpt"
+        self.pretrained_weights = "/home/matthias/Schreibtisch/skincancer/data/pretrained_weights/inception_resnet_v2_2016_08_30.ckpt"
 
     def loss(self, output, labels):
             predictions = tf.nn.softmax(output)
@@ -303,7 +303,7 @@ class InceptionResnet(AbstractModel):
 
             # load Graph definitions
             with slim.arg_scope(inception_resnet_v2_arg_scope()):
-                logits, end_points = inception_resnet_v2(img_scaled, is_training=False)
+                logits, end_points = inception_resnet_v2(img_scaled, is_training=self.training)
 
             self.model["saver"] = tf.train.Saver()
             self.pretrained_init(self.pretrained_weights)
