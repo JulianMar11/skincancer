@@ -36,10 +36,8 @@ class CancerData(AbstractData):
         self.classnames = ["Melanoma", "Nevus", "Seborrheic Keartosis"]
 
     def load_with_label(self, pic_id, path, label):
-        print(path)
         for root, dirs, files in os.walk(path):
             for file in files:
-                print(file)
                 if file.endswith(".png") or file.endswith(".PNG") or file.endswith(".jpg") or file.endswith(".jpeg") or file.endswith(".bmp"):
                     pic_id += 1
                     if np.random.randint(0, 5) == 2:
@@ -47,8 +45,6 @@ class CancerData(AbstractData):
                     else:
                         set = "train"
                     file_path = join(path, file)
-                    print(file_path)
-                    print("LABEL", label)
                     pic = {"id": pic_id, "set": set, "label": label, "path": file_path}
                     self.rows.append(pic)
         return pic_id
