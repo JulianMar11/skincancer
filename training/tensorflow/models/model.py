@@ -243,3 +243,112 @@ class ClassificationModel(AbstractModel):
         image_summary_op = tf.summary.image('images', tf.reshape(wrong_images, [-1, self.input_shape[0], self.input_shape[1], self.input_shape[2]]), 50)
         return image_summary_op, np.reshape(wrong_images, [-1, self.input_shape[0]*self.input_shape[1]*self.input_shape[2]])  # reshape to make sure it's right for the TB tensor
     '''
+
+
+
+#Load the definitions of Inception-Resnet-v2 architecture
+import tensorflow.contrib.slim as slim
+from training.tensorflow.models.tfmodels.inception_resnet_v2 import inception_resnet_v2, inception_resnet_v2_arg_scope
+
+
+class InceptionResnet(AbstractModel):
+    def __init__(self, path, input_shape=(299, 299, 3), classnames=None, extractor=fe.inception_resnet_v2, training=False, learning_rate=1e-4, dropout=0.0, rewrite=False):
+        self.name = "Classification_" + extractor.__name__ + '_d' + str(dropout) + '_l' + str(learning_rate)
+        super(InceptionResnet, self).__init__(path, self.name, rewrite, learning_rate)
+        self.input_shape = input_shape
+        self.training = training
+        self.extractor = extractor
+        self.dropout = dropout
+        self.classnames = classnames
+        self.classes = len(classnames)
+        self.model_parameters = ['x', 'y', 'loss', 'accuracy', 'global_step', 'predictions', 'predictions_op', 'correct_prediction_op', 'merged', 'optimizer']
+        self.pretrained_weights = "/Users/Julian/GitHub/skincancer/data/results/Pretrained_weights/inception_resnet_v2_2016_08_30.ckpt"
+
+    def loss(self, output, labels):
+            predictions = tf.nn.softmax(output)
+            # Define the accuracy calculation
+            with tf.name_scope('Accuracy'):
+                predictions_op = tf.argmax(predictions, 1)
+                correct_prediction_op = tf.equal(predictions_op, tf.to_int64(labels))
+                accuracy_op = tf.reduce_mean(tf.cast(correct_prediction_op, tf.float32))
+                tf.summary.scalar('Accuracy', accuracy_op)
+                self.model["predictions"] = predictions
+                self.model["predictions_op"] = predictions_op
+                self.model["correct_prediction_op"] = correct_prediction_op
+                self.model["accuracy"] = accuracy_op
+
+            loss = me.sparse_xentropy_loss(output, labels)
+            tf.summary.scalar('loss', loss)
+            self.model["loss"] = loss
+            return loss
+
+    def inference(self):
+        print("BUILDING GRAPH")
+        keep_prob = 1.0 - self.dropout
+        normalizer_params = {'is_training': self.training, 'updates_collections': None, 'decay': 0.99}
+        initializer = layers.variance_scaling_initializer()
+        activation_fn = tf.nn.relu
+        normalizer_fn = layers.batch_norm
+        regularizer = layers.l2_regularizer(1.0)
+
+        with self.graph.as_default():
+            # Create a placeholder to pass the input image
+            img_tensor = tf.placeholder(tf.float32, shape=(None, self.input_shape[0], self.input_shape[1], self.input_shape[2]))
+            self.model["x"] = img_tensor
+
+            # Scale the image inputs to {+1, -1} from 0 to 255
+            #img_scaled = tf.scalar_mul((1.0 / 255), img_tensor)
+            img_scaled = tf.subtract(img_tensor, 0.5)
+            img_scaled = tf.multiply(img_scaled, 2.0)
+
+            # load Graph definitions
+            with slim.arg_scope(inception_resnet_v2_arg_scope()):
+                logits, end_points = inception_resnet_v2(img_scaled, is_training=False)
+
+            self.model["saver"] = tf.train.Saver()
+            self.pretrained_init(self.pretrained_weights)
+
+            # Initialize After Loading
+            y = tf.placeholder(tf.int64, [None], name="y")
+            self.model['y'] = y
+            # Define Loss
+            with tf.name_scope('output'):
+                loss = self.loss(end_points["Logits"], y)
+
+            # Define Training Setup
+            self.training_setup(loss)
+
+            # Merge all variables
+            _, _ = self.merge()
+
+            # Initialize Variables and save
+            self.init_model()
+
+    def evaluate(self, x_batch, y_batch, mode="train"):
+        predictions, step = self.sess.run([self.model["predictions"], self.global_step],
+                                          feed_dict={self.model["x"]: x_batch, self.model["y"]: y_batch})
+        for i, logits in enumerate(predictions):
+            string = self.directory + '/hist/' + mode + "_" + str(y_batch[i]) + '_prediction_' + str(i) + ".png"
+            util.create_output_classification(img=x_batch[i], y=y_batch[i], y_logits=logits, classes=self.classnames,
+                                              string=string)
+
+    def pretrained_init(self, checkpoint_file):
+        self.model["saver"].restore(self.sess, checkpoint_file)
+
+    def predict(self, x_batch):
+        pred_prob = self.sess.run(self.model["predictions"], feed_dict={self.model["x"]: x_batch})
+        probabilities = pred_prob[0, 0:]
+        print(probabilities)
+
+    def load(self, path=None):
+        self.pretrained_init(path)
+
+        """
+        print("Restore model from", path)
+        if path is None:
+            self.model["saver"].restore(self.sess, tf.train.latest_checkpoint(self.save_dir))
+            # self.get_model_from_graph(self.model_parameters)
+        else:
+            self.model["saver"].restore(self.sess, path)
+            # self.get_model_from_graph(self.model_parameters)
+        """
