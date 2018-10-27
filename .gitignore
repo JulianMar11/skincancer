@@ -31,3 +31,5 @@ yolo/logs/*
 *.avi
 
 data/*
+
+Server/static/*
