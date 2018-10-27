@@ -6,10 +6,10 @@ import warnings
 import argparse
 import PATH
 import numpy as np
-import training.tensorflow.models.ImageData as ImgData
-import training.tensorflow.models.model as mod
-import training.tensorflow.models.cnn_models as fe
-import training.tensorflow.models.util as util
+import models.ImageData as ImgData
+import models.model as mod
+import models.cnn_models as fe
+import models.util as util
 
 with warnings.catch_warnings():
     warnings.filterwarnings("ignore")
@@ -27,7 +27,8 @@ def check_data(data):
 def load_data(dataset, p=PATH.paths, input_shape=(128, 128, 3)):
     if dataset == "dataset":
         data = ImgData.CancerData(p["dataset"], input_shape)
-
+    if dataset == "dataset2018":
+        data = ImgData.CancerData2018(p["dataset2018"], input_shape)
     if dataset == "cifar10":
         data = ImgData.Cifar10Data(p["cifar10"], input_shape)
 
@@ -69,12 +70,13 @@ def training(data, models=[], epochs=512, batch_size=32):
                     m.summary(x_batch, y_batch, mode="train")
                     m.summary(x_batch_test, y_batch_test, mode="test")
 
+                if i % 100 == 0:
+                    m.save()
+
         for index, m in enumerate(models):
             loss_histories[index][str(epoch)] = models_epoch_loss[index]
             print('Model:', m.name, 'Epoch:', epoch, 'Epoch Loss:', models_epoch_loss[index])
 
-            if epoch % 32 == 0:
-                m.save()
             if epoch > 3:
                 if loss_histories[index][str(epoch - 1)] - loss_histories[index][str(epoch)] < loss_delta and \
                                 loss_histories[index][str(epoch - 2)] - loss_histories[index][str(epoch)] < loss_delta and \
@@ -115,22 +117,16 @@ if __name__ == "__main__":
         input_shape = (256, 256, 3)
         print(PATH.paths)
 
-        data = load_data("dataset", p=PATH.paths, input_shape=input_shape)
+        data = load_data("dataset2018", p=PATH.paths, input_shape=input_shape)
         models = []
         learningrate = [1e-4] #, 5e-5, 2e-5, 1e-5, 5e-6, 1e-6]
 
         for l in learningrate:
-            model = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.inception_v3_base, classes=data.get_classnames(), learning_rate=l, rewrite=True)
-            model2 = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.CNN_Resnet, classes=data.get_classnames(), learning_rate=l, rewrite=True)
-            model3 = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.CNN3x3, classes=data.get_classnames(), learning_rate=l, rewrite=True)
-            models.append(model)
-            models.append(model2)
-            models.append(model3)
+            mymodel = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.CNN_Resnet, classes=data.get_classnames(), learning_rate=l, rewrite=True)
+            models.append(mymodel)
             training(data=data, models=models, epochs=128, batch_size=32)
 
             model = None
-            model2 = None
-            model3 = None
             models = []
 
         # model = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.CNN_Resnet, classes=data.get_classes(), rewrite=True)
