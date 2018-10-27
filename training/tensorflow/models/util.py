@@ -3,10 +3,10 @@ import tensorflow as tf
 import numpy as np
 import os
 import shutil
-import matplotlib as mpl
-mpl.use('TkAgg')
+import matplotlib
+matplotlib.use('TkAgg')
 import matplotlib.pyplot as plt
-mpl.pyplot.switch_backend('agg')
+matplotlib.pyplot.switch_backend('agg')
 
 
 def count_parameters():
