@@ -4,7 +4,7 @@ import cv2
 import numpy as np
 import models.preprocessing as pp
 import pickle
-
+import csv
 
 class AbstractData(object):
     def __init__(self, directory, input_shape):
@@ -63,6 +63,118 @@ class CancerData(AbstractData):
         pic_id = self.load_with_label(pic_id, path_nevus, 0)
         pic_id = self.load_with_label(pic_id, path_seborrheic_keratosis, 1)
         _ = self.load_with_label(pic_id, path_melanoma, 2)
+        print("Loaded Data")
+        print(self.size())
+        print(len(self.rows))
+        for i in range(0, 5):
+            print(self.rows[np.random.randint(0, len(self.rows) - 1)])
+
+    def get_classes(self):
+        return self.classes
+
+    def set_classnames(self, list):
+        self.classnames = list
+
+    def get_classnames(self):
+        return self.classnames
+
+    def getimage(self, path):
+        img = cv2.imread(path)
+        final = pp.preprocess(img, size=(self.input_shape[0], self.input_shape[1]))
+        return final
+
+    def random_batch(self, batch_size, mode="train"):
+        x = []
+        y = []
+        subset = [pic for pic in self.rows if pic["set"] == mode]
+
+        while len(x) < batch_size:
+            label = np.random.randint(0, self.classes)
+            class_pics = [pic for pic in subset if pic["label"] == label]
+            x_path = class_pics[np.random.randint(0, len(class_pics))]['path']
+            x.append(self.getimage(x_path))
+            y.append(label)
+
+        y = np.array(y).astype(np.int32)
+        x = np.array(x)
+        return x, y
+
+    def size_train(self):
+        return len([pic for pic in self.rows if pic["set"] == "train"])
+
+    def size_test(self):
+        return len([pic for pic in self.rows if pic["set"] == "test"])
+
+    def size(self):
+        train = [pic for pic in self.rows if pic["set"] == "train"]
+        test = [pic for pic in self.rows if pic["set"] == "test"]
+        sizes = {}
+        for i in range(0, self.classes):
+            subset_train = [pic for pic in train if pic["label"] == i]
+            subset_test = [pic for pic in test if pic["label"] == i]
+            string_train = "train_" + str(i)
+            string_test = "test_" + str(i)
+            length_train = len(subset_train)
+            length_test = len(subset_test)
+            sizes[string_train] = length_train
+            sizes[string_test] = length_test
+        return sizes
+
+
+class CancerData2018(AbstractData):
+    def __init__(self, directory, input_shape):
+        super(CancerData2018, self).__init__(directory, input_shape)
+        self.pointers = {}
+        self.rows = []
+        self.classes = 7
+        self.classnames = ["Melanocytic nevus",
+                           "Melanoma",
+                           "Basal cell carcinoma",
+                           "Actinic keratosis",
+                           "Benign keratosis",
+                           "Dermatofibroma",
+                           "Vascular lesion"]
+
+    def load(self):
+        label_path = os.path.join(self.directory, "ISIC2018_Task3_Training_GroundTruth.csv")
+        data_path = os.path.join(self.directory, "ISIC2018_Task3_Training_Input")
+        pic_id = 0
+        with open(label_path, newline='') as csvfile:
+            reader = csv.reader(csvfile, delimiter=',')
+            print(reader.__next__())
+            for row in reader:
+                NV = int(float(row[2]))
+                MEL = int(float(row[1]))
+                BCC = int(float(row[3]))
+                AKIEC = int(float(row[4]))
+                BKL = int(float(row[5]))
+                DF = int(float(row[6]))
+                VASC = int(float(row[7]))
+                if NV == 1:
+                    label = 0
+                elif MEL == 1:
+                    label = 1
+                elif BCC == 1:
+                    label = 2
+                elif AKIEC == 1:
+                    label = 3
+                elif BKL == 1:
+                    label = 4
+                elif DF == 1:
+                    label = 5
+                elif VASC == 1:
+                    label = 6
+                else:
+                    print("SHIAT!")
+                    label = 7
+                pic_id += 1
+                if np.random.randint(0, 5) == 2:
+                    set = "test"
+                else:
+                    set = "train"
+                file_path = os.path.join(data_path, row[0]+ ".jpg")
+                pic = {"id": pic_id, "set": set, "label": label, "path": file_path}
+                self.rows.append(pic)
         print("Loaded Data")
         print(self.size())
         print(len(self.rows))
@@ -195,4 +307,3 @@ class Cifar10Data(AbstractData):
 
     def size_test(self):
         return 10000
-
