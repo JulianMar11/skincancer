@@ -91,7 +91,7 @@ class CancerData(AbstractData):
         while len(x) < batch_size:
             label = np.random.randint(0, self.classes)
             class_pics = [pic for pic in subset if pic["label"] == label]
-            x_path = class_pics[np.random.randint(0, len(class_pics) - 1)]['path']
+            x_path = class_pics[np.random.randint(0, len(class_pics))]['path']
             x.append(self.getimage(x_path))
             y.append(label)
 

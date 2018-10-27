@@ -30,6 +30,10 @@ yolo/logs/*
 
 *.avi
 
+*.png
+
 data/*
 
 Server/static/*
+
+static/*

@@ -12,7 +12,7 @@ paths_local = {"dataset": "/Users/Julian/GitHub/skincancer/data/dataset",
                }
                }
 
-paths_production= {"dataset": "/Users/Julian/GitHub/skincancer/data/dataset",
+paths_production= {"dataset": "/Users/Matze/Desktop/HackathonScionWinter/data/dataset",
                "train_results": "/Users/Matze/Desktop/HackathonScionWinter/data/results/",
                "annotation_results": "/Users/Julian/GitHub/BeeNets/data/annotations/",
                "pollen": "/Users/Julian/Desktop/Dropbox/synthbeedata/Pollen_Dataset/",
@@ -41,7 +41,7 @@ test_videos_remote = ["/home/ubuntu/DATA/videos/31_05_2018_Hopfner_video_10.mp4"
 # Paths to data depending of USER variable
 paths = paths_local \
     if os.getenv('HOME') == '/Users/Julian' \
-    else paths_remote
+    else paths_production
 
 videos = test_videos_local \
     if os.getenv('USER') == 'Julian' \
