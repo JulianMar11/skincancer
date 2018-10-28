@@ -37,8 +37,8 @@ def load_data(dataset, p=PATH.paths, input_shape=(128, 128, 3)):
 
 
 def load_model(p=PATH.paths, input_shape=(128, 128, 3), ex=fe.CNN, classes=None, learning_rate=1e-5, rewrite=False):
-    model = mod.InceptionResnet(path=p["train_results"], input_shape=input_shape, classnames=classes,
-                                    extractor=ex, training=True, learning_rate=learning_rate, dropout=0.0,
+    model = mod.ClassificationModel(path=p["train_results"], input_shape=input_shape, classnames=classes,
+                                    extractor=ex, training=True, learning_rate=learning_rate, dropout=0.2,
                                     rewrite=rewrite)
     model.inference()
     return model
@@ -122,8 +122,13 @@ if __name__ == "__main__":
         learningrate = [1e-4] #, 5e-5, 2e-5, 1e-5, 5e-6, 1e-6]
 
         for l in learningrate:
-            mymodel = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.inception_resnet_v2, classes=data.get_classnames(), learning_rate=l, rewrite=True)
+            mymodel = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.CNN3x3_orig_spatial_dropout, classes=data.get_classnames(), learning_rate=l, rewrite=True)
+            mymodel2 = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.CNN_Resnet, classes=data.get_classnames(), learning_rate=l, rewrite=True)
+            mymodel3 = load_model(p=PATH.paths, input_shape=input_shape, ex=fe.inception_resnet_v2, classes=data.get_classnames(), learning_rate=l, rewrite=True)
+
             models.append(mymodel)
+            models.append(mymodel2)
+            models.append(mymodel3)
             training(data=data, models=models, epochs=20, batch_size=32)
 
             model = None
