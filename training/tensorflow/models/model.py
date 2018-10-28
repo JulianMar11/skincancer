@@ -172,14 +172,15 @@ class ClassificationModel(AbstractModel):
                                                          normalizer_params=normalizer_params,
                                                          regularizer=regularizer)
 
+                print("Visual Encoder - Output:", output.get_shape().as_list())
                 with tf.variable_scope("dense"):
                     with tf.variable_scope("flatten"):
                         net = layers.flatten(output)
                         print("flattened - Output:", net.get_shape().as_list())
 
-                    with tf.variable_scope("fully1") as scope:
-                        net = layers.fully_connected(net, 2048, activation_fn=tf.nn.leaky_relu, scope=scope)
-                        print("fully1 - Output:", net.get_shape().as_list())
+                    #with tf.variable_scope("fully1") as scope:
+                    #    net = layers.fully_connected(net, 2048, activation_fn=tf.nn.leaky_relu, scope=scope)
+                    #    print("fully1 - Output:", net.get_shape().as_list())
 
                     with tf.variable_scope("fully2") as scope:
                         y_logits = layers.fully_connected(net, self.classes, activation_fn=tf.nn.leaky_relu, scope=scope)
