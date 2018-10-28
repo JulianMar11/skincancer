@@ -20,6 +20,7 @@ CNN3x3_orig_3x3_pool
 CNN3x3_orig_spatial_dropout
 '''
 
+from models.tfmodels.inception_resnet_v2 import inception_resnet_v2_arg_scope
 
 def inception_resnet_v2(inputs, reuse=False, name="InceptionResnetV2", training=True,
            activation_fn=tf.nn.relu,
@@ -28,18 +29,20 @@ def inception_resnet_v2(inputs, reuse=False, name="InceptionResnetV2", training=
            normalizer_fn=layers.batch_norm,
            normalizer_params={},
            regularizer=layers.l2_regularizer(1.0)):
-    with tf.variable_scope(name, 'InceptionResnetV2', [inputs],
-                           reuse=reuse) as scope:
-        with slim.arg_scope([slim.batch_norm, slim.dropout], is_training=training):
-            net, end_points = inc.inception_resnet_v2_base(inputs, scope=scope, activation_fn=activation_fn)
-        with tf.variable_scope('AuxLogits'):
-            aux = end_points['PreAuxLogits']
-            aux = slim.avg_pool2d(aux, 5, stride=3, padding='VALID',
-                                  scope='Conv2d_1a_3x3')
-            aux = slim.conv2d(aux, 128, 1, scope='Conv2d_1b_1x1')
-            aux = slim.conv2d(aux, 768, aux.get_shape()[1:3],
-                              padding='VALID', scope='Conv2d_2a_5x5')
-        return net, aux
+    with tf.variable_scope(name, 'InceptionResnetV2', [inputs], reuse=reuse) as scope:
+        #with slim.arg_scope(inception_resnet_v2_arg_scope()):
+            with slim.arg_scope([slim.batch_norm, slim.dropout], is_training=training):
+                net, end_points = inc.inception_resnet_v2_base(inputs, scope=scope, activation_fn=activation_fn)
+            with tf.variable_scope('AuxLogits'):
+                aux = end_points['PreAuxLogits']
+                aux = slim.avg_pool2d(aux, 5, stride=3, padding='VALID',
+                                          scope='Conv2d_1a_3x3')
+                aux = slim.conv2d(aux, 128, 1, scope='Conv2d_1b_1x1')
+                aux = slim.conv2d(aux, 768, aux.get_shape()[1:3],
+                                      padding='VALID', scope='Conv2d_2a_5x5')
+                net = slim.dropout(net, keep_prob, is_training=training,
+                                   scope='Dropout')
+    return net, end_points['PreAuxLogits']
 
 
 def custom(inputs, reuse=False, name="flow", training=True,
