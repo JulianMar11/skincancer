@@ -12,7 +12,7 @@ def preprocess(img, size):
 def augment(img):
     img = rotate(img)
     img = flip(img)
-    img = change_values(img)
+    #img = change_values(img)
     return img
 
 
